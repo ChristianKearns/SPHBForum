@@ -1,0 +1,15 @@
+-- DropForeignKey
+ALTER TABLE "Pm" DROP CONSTRAINT "Pm_fromId_fkey";
+
+-- DropForeignKey
+ALTER TABLE "Pm" DROP CONSTRAINT "Pm_toId_fkey";
+
+-- AlterTable
+ALTER TABLE "Pm" ALTER COLUMN "fromId" DROP NOT NULL,
+ALTER COLUMN "toId" DROP NOT NULL;
+
+-- AddForeignKey
+ALTER TABLE "Pm" ADD CONSTRAINT "Pm_fromId_fkey" FOREIGN KEY ("fromId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Pm" ADD CONSTRAINT "Pm_toId_fkey" FOREIGN KEY ("toId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id        String    @id @default(uuid())
+  title     String
+  category  String
+  body      String
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  comments  Comment[]
+  userId    String
+  likes     Like[]
+  dislikes  Dislike[]
+  Report    Report[]
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  about     String    @default("I am a happy SPHB member")
+  createdAt DateTime  @default(now())
+  comments  Comment[]
+  likes     Like[]
+  dislikes  Dislike[]
+  posts     Post[]
+  inbox     Pm[]      @relation("inbox")
+  sent      Pm[]      @relation("sent")
+  roles     Role[]
+  admin     Boolean   @default(false)
+  reports   Report[]
+}
+
+model Comment {
+  id        String    @id @default(uuid())
+  message   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  parent    Comment?  @relation("ParentChild", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Comment[] @relation("ParentChild")
+  parentId  String?
+  likes     Like[]
+  dislikes  Dislike[]
+  Report    Report[]
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  post      Post?    @relation(fields: [postId], references: [id])
+  userId    String
+  commentId String?
+  postId    String?
+
+  @@unique([userId, commentId])
+  @@unique([userId, postId])
+}
+
+model Dislike {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  post      Post?    @relation(fields: [postId], references: [id])
+  userId    String
+  commentId String?
+  postId    String?
+
+  @@unique([userId, commentId])
+  @@unique([userId, postId])
+}
+
+model Pm {
+  id        String   @id @default(uuid())
+  from      User?    @relation("sent", fields: [fromId], references: [id])
+  to        User?    @relation("inbox", fields: [toId], references: [id])
+  title     String
+  message   String
+  fromId    String?
+  toId      String?
+  createdAt DateTime @default(now())
+}
+
+model Role {
+  id    String @id @default(uuid())
+  users User[]
+  name  String
+  color String
+}
+
+model Report {
+  id              String   @id @default(uuid())
+  reason          String
+  reporter        User     @relation(fields: [reporterId], references: [id])
+  reporterId      String
+  createdAt       DateTime @default(now())
+  reportedPost    Post?    @relation(fields: [postId], references: [id])
+  postId          String?
+  reportedComment Comment? @relation(fields: [commentId], references: [id])
+  commentId       String?
+  isPost          Boolean
+}
+
+model Feedback {
+  id        String   @id @default(uuid())
+  feedback  String
+  createdAt DateTime @default(now())
+}
